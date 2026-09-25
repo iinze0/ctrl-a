@@ -1,24 +1,16 @@
-<div align="center">
+# ctrl-a
 
-<img src="banner.png" width="720" alt="ctrl-a" />
+Select-all for Kali’s normal terminal.
 
-**select all in the normal kali terminal**
+[![release](https://img.shields.io/github/v/release/iinze0/ctrl-a?style=flat-square)](https://github.com/iinze0/ctrl-a/releases/latest)
+Made by [iinze0](https://github.com/iinze0)
 
-```diff
-+ made by iinze0
-+ not a second app
-```
+Kali’s QTerminal has no Select All. This package turns **Ctrl+A** on in the terminal you already open — QTerminal, plus xfce4-terminal, gnome-terminal, and Konsole. It is not a second app.
 
-</div>
-
----
-
-Kali's terminal has no Select All. This turns **Ctrl+A** on in the one you already open.
-
-| key | what it does |
-|:----|:-------------|
-| **Ctrl+A** | select the whole scrollback and copy it |
-| **Home** | jump to the start of the line |
+| Key | Action |
+|:----|:-------|
+| **Ctrl+A** | Select the whole scrollback and copy it |
+| **Home** | Jump to the start of the line |
 
 Close every terminal after installing, then open Terminal again.
 
@@ -29,9 +21,24 @@ wget -O /tmp/ctrl-a.deb https://github.com/iinze0/ctrl-a/releases/download/v1.1.
 sudo dpkg -i /tmp/ctrl-a.deb
 ```
 
-Uninstall: `sudo apt purge ctrl-a`
+One-liner:
 
+```bash
+curl -fsSL https://raw.githubusercontent.com/iinze0/ctrl-a/main/install-ctrl-a.sh | sudo bash
 ```
-github.com/iinze0
-github.com/iinze0/ctrl-a
+
+Uninstall:
+
+```bash
+sudo apt purge ctrl-a
 ```
+
+## Notes
+
+- Package architecture: `amd64`
+- After install, reopen the terminal so the keybinding is picked up
+
+<p align="center">
+  <a href="https://github.com/iinze0">iinze0</a> ·
+  <a href="https://github.com/iinze0/ctrl-a">ctrl-a</a>
+</p>
