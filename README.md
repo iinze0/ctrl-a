@@ -1,8 +1,11 @@
 # ctrl-a
 
-Select-all for Kali’s normal terminal.
+Select-all for Kali’s default terminal.
 
 [![release](https://img.shields.io/github/v/release/iinze0/ctrl-a?style=flat-square)](https://github.com/iinze0/ctrl-a/releases/latest)
+[![license](https://img.shields.io/badge/license-MIT-0b7285?style=flat-square)](LICENSE)
+[![arch](https://img.shields.io/badge/arch-amd64-555?style=flat-square)](#install)
+
 Made by [iinze0](https://github.com/iinze0)
 
 Kali’s QTerminal has no Select All. This package turns **Ctrl+A** on in the terminal you already open — QTerminal, plus xfce4-terminal, gnome-terminal, and Konsole. It is not a second app.
@@ -27,18 +30,18 @@ One-liner:
 curl -fsSL https://raw.githubusercontent.com/iinze0/ctrl-a/main/install-ctrl-a.sh | sudo bash
 ```
 
-Uninstall:
-
 ```bash
-sudo apt purge ctrl-a
+sudo apt purge ctrl-a    # uninstall
 ```
 
 ## Notes
 
-- Package architecture: `amd64`
-- After install, reopen the terminal so the keybinding is picked up
+- Architecture: `amd64`
+- Reopen the terminal after install so the binding is picked up
+
+---
 
 <p align="center">
   <a href="https://github.com/iinze0">iinze0</a> ·
-  <a href="https://github.com/iinze0/ctrl-a">ctrl-a</a>
+  <a href="LICENSE">MIT</a>
 </p>
