@@ -1,0 +1,14 @@
+Package: ctrl-a
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: all
+Installed-Size: 40
+Depends: python3, python3-gi, gir1.2-gtk-3.0, gir1.2-vte-2.91
+Maintainer: iinze0 <iinze0@users.noreply.github.com>
+Homepage: https://github.com/iinze0/ctrl-a
+Description: Terminal where Ctrl+A selects all
+ Kali's QTerminal has no Select All. This terminal does.
+ Ctrl+A selects the whole scrollback and copies it.
+ Alt+A moves to the start of the line.
+ Made by iinze0.

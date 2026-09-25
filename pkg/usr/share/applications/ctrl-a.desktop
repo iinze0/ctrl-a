@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Ctrl+A
+GenericName=Terminal
+Comment=Select the whole terminal with Ctrl+A
+Exec=ctrl-a
+Icon=utilities-terminal
+Terminal=false
+Categories=System;TerminalEmulator;
+StartupNotify=true
+Keywords=terminal;select;copy;

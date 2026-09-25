@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Kali terminal where Ctrl+A selects the whole scrollback and copies it."""
+
+import os
+import shutil
+import sys
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Vte", "2.91")
+from gi.repository import Gdk, GLib, Gtk, Pango, Vte
+
+
+def shell_argv():
+    shell = os.environ.get("SHELL") or shutil.which("zsh") or shutil.which("bash") or "/bin/bash"
+    if not os.path.isfile(shell):
+        shell = "/bin/bash"
+    return [shell]
+
+
+class Window(Gtk.Window):
+    def __init__(self):
+        super().__init__(title="ctrl-a")
+        self.set_default_size(960, 580)
+        self.term = Vte.Terminal()
+        self.term.set_scrollback_lines(-1)
+        self.term.set_font(Pango.FontDescription("Monospace 12"))
+        self.term.set_cursor_blink_mode(Vte.CursorBlinkMode.ON)
+        self.term.connect("key-press-event", self.on_key)
+        self.term.connect("child-exited", lambda *_: self.destroy())
+        self.add(self.term)
+        cwd = os.environ.get("HOME") or None
+        self.term.spawn_async(
+            Vte.PtyFlags.DEFAULT,
+            cwd,
+            shell_argv(),
+            None,
+            GLib.SpawnFlags.DEFAULT,
+            None,
+            None,
+            -1,
+            None,
+            None,
+        )
+
+    def on_key(self, _widget, event):
+        ctrl = bool(event.state & Gdk.ModifierType.CONTROL_MASK)
+        shift = bool(event.state & Gdk.ModifierType.SHIFT_MASK)
+        alt = bool(event.state & Gdk.ModifierType.MOD1_MASK)
+        if ctrl and not shift and not alt and event.keyval in (Gdk.KEY_a, Gdk.KEY_A):
+            self.select_and_copy()
+            return True
+        if alt and not ctrl and not shift and event.keyval in (Gdk.KEY_a, Gdk.KEY_A):
+            self.send(b"\x01")
+            return True
+        return False
+
+    def select_and_copy(self):
+        self.term.select_all()
+        copy_fmt = getattr(self.term, "copy_clipboard_format", None)
+        if copy_fmt is not None:
+            copy_fmt(Vte.Format.TEXT)
+        else:
+            self.term.copy_clipboard()
+        self.set_title("ctrl-a — selected and copied")
+        GLib.timeout_add(1200, self._reset_title)
+
+    def _reset_title(self):
+        self.set_title("ctrl-a")
+        return False
+
+    def send(self, data):
+        try:
+            self.term.feed_child(data)
+        except TypeError:
+            self.term.feed_child(data, len(data))
+
+
+def main():
+    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
+        print("ctrl-a — terminal where Ctrl+A selects all and copies it")
+        print("Alt+A goes to the start of the line")
+        return 0
+    win = Window()
+    win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+    win.term.grab_focus()
+    Gtk.main()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
