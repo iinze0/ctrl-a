@@ -1,12 +1,26 @@
-# ctrl-a
+<div align="center">
 
-**Made by iinze0**
+<img src="banner.png" width="720" alt="ctrl-a" />
 
-Ctrl+A in the **normal** Kali terminal. Not a second app.
+**select all in the normal kali terminal**
 
-Kali's terminal has no Select All. After this, **Ctrl+A** selects the whole scrollback and copies it. **Home** still jumps to the start of the line.
+```diff
++ made by iinze0
++ not a second app
+```
 
-Close every terminal window after installing, then open Terminal again.
+</div>
+
+---
+
+Kali's terminal has no Select All. This turns **Ctrl+A** on in the one you already open.
+
+| key | what it does |
+|:----|:-------------|
+| **Ctrl+A** | select the whole scrollback and copy it |
+| **Home** | jump to the start of the line |
+
+Close every terminal after installing, then open Terminal again.
 
 ## Install
 
@@ -15,6 +29,9 @@ wget -O /tmp/ctrl-a.deb https://github.com/iinze0/ctrl-a/releases/download/v1.1.
 sudo dpkg -i /tmp/ctrl-a.deb
 ```
 
-Then close the terminal and open it again. Press **Ctrl+A**.
-
 Uninstall: `sudo apt purge ctrl-a`
+
+```
+github.com/iinze0
+github.com/iinze0/ctrl-a
+```
