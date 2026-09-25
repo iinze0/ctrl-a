@@ -1,0 +1,12 @@
+#!/bin/sh
+# The normal qterminal, with Ctrl+A selecting the whole buffer.
+REAL=/usr/bin/qterminal.real
+if [ ! -x "$REAL" ]; then
+    echo "qterminal is not installed" >&2
+    exit 127
+fi
+HOOK=/usr/lib/ctrl-a/libselectall.so
+if [ -f "$HOOK" ] && ldd "$REAL" 2>/dev/null | grep -q 'libQt6Core\.so'; then
+    export LD_PRELOAD="$HOOK${LD_PRELOAD:+:$LD_PRELOAD}"
+fi
+exec "$REAL" "$@"

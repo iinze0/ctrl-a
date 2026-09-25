@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    if [ -f /usr/bin/qterminal ] && grep -q 'qterminal.real' /usr/bin/qterminal 2>/dev/null; then
+        rm -f /usr/bin/qterminal
+    fi
+fi

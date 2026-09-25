@@ -1,94 +1,90 @@
-#!/usr/bin/env python3
-"""Kali terminal where Ctrl+A selects the whole scrollback and copies it."""
+#!/bin/sh
+# Turn on Ctrl+A = select all in the terminals Kali already has.
+set -eu
 
-import os
-import shutil
-import sys
+quiet=0
+system=0
+for arg in "$@"; do
+    case "$arg" in
+        --quiet) quiet=1 ;;
+        --system) system=1 ;;
+        -h|--help)
+            echo "ctrl-a enables Ctrl+A select-all in the normal Kali terminal."
+            echo "Close every terminal window, then open Terminal again."
+            exit 0
+            ;;
+    esac
+done
 
-import gi
+own() {
+    file=$1
+    user=$2
+    if [ "$(id -u)" -eq 0 ] && [ -n "$user" ] && [ "$user" != UNKNOWN ]; then
+        chown "$user:$user" "$file" 2>/dev/null || chown "$user" "$file" 2>/dev/null || true
+    fi
+}
 
-gi.require_version("Gtk", "3.0")
-gi.require_version("Vte", "2.91")
-from gi.repository import Gdk, GLib, Gtk, Pango, Vte
+apply_home() {
+    home=$1
+    user=$2
+    [ -d "$home" ] || return 0
 
+    dir="$home/.config/xfce4/terminal"
+    mkdir -p "$dir"
+    own "$dir" "$user"
+    accels="$dir/accels.scm"
+    line='(gtk_accel_path "<Actions>/terminal-window/select-all" "<Primary>a")'
+    if [ -f "$accels" ]; then
+        grep -v 'terminal-window/select-all' "$accels" > "$accels.ctrl-a" || true
+        printf '%s\n' "$line" >> "$accels.ctrl-a"
+        mv "$accels.ctrl-a" "$accels"
+    else
+        printf '%s\n' '; xfce4-terminal GtkAccelMap rc-file         -*- scheme -*-' ';' "$line" > "$accels"
+    fi
+    own "$accels" "$user"
 
-def shell_argv():
-    shell = os.environ.get("SHELL") or shutil.which("zsh") or shutil.which("bash") or "/bin/bash"
-    if not os.path.isfile(shell):
-        shell = "/bin/bash"
-    return [shell]
+    kdir="$home/.config"
+    mkdir -p "$kdir"
+    kons="$kdir/konsolerc"
+    touch "$kons"
+    if grep -q '^edit_select_all=' "$kons"; then
+        grep -v '^edit_select_all=' "$kons" > "$kons.ctrl-a" || true
+        mv "$kons.ctrl-a" "$kons"
+    fi
+    if grep -q '^\[Shortcuts\]' "$kons"; then
+        awk 'BEGIN{done=0} {print} /^\[Shortcuts\]$/ && !done {print "edit_select_all=Ctrl+A"; done=1}' "$kons" > "$kons.ctrl-a"
+        mv "$kons.ctrl-a" "$kons"
+    else
+        printf '\n[Shortcuts]\nedit_select_all=Ctrl+A\n' >> "$kons"
+    fi
+    own "$kons" "$user"
 
+    if [ "$(id -u)" -ne 0 ] || [ "$user" = "$(id -un)" ]; then
+        if command -v gsettings >/dev/null 2>&1; then
+            if gsettings list-schemas 2>/dev/null | grep -qx 'org.gnome.Terminal.Legacy.Keybindings'; then
+                gsettings set org.gnome.Terminal.Legacy.Keybindings select-all '<Control>a' || true
+            fi
+            if gsettings list-schemas 2>/dev/null | grep -qx 'org.mate.terminal.keybindings'; then
+                gsettings set org.mate.terminal.keybindings select-all '<Control>a' || true
+            fi
+        fi
+    fi
+}
 
-class Window(Gtk.Window):
-    def __init__(self):
-        super().__init__(title="ctrl-a")
-        self.set_default_size(960, 580)
-        self.term = Vte.Terminal()
-        self.term.set_scrollback_lines(-1)
-        self.term.set_font(Pango.FontDescription("Monospace 12"))
-        self.term.set_cursor_blink_mode(Vte.CursorBlinkMode.ON)
-        self.term.connect("key-press-event", self.on_key)
-        self.term.connect("child-exited", lambda *_: self.destroy())
-        self.add(self.term)
-        cwd = os.environ.get("HOME") or None
-        self.term.spawn_async(
-            Vte.PtyFlags.DEFAULT,
-            cwd,
-            shell_argv(),
-            None,
-            GLib.SpawnFlags.DEFAULT,
-            None,
-            None,
-            -1,
-            None,
-            None,
-        )
+if [ "$system" -eq 1 ]; then
+    for home in /root /home/*; do
+        [ -d "$home" ] || continue
+        user=$(stat -c '%U' "$home" 2>/dev/null || echo UNKNOWN)
+        apply_home "$home" "$user"
+    done
+    exit 0
+fi
 
-    def on_key(self, _widget, event):
-        ctrl = bool(event.state & Gdk.ModifierType.CONTROL_MASK)
-        shift = bool(event.state & Gdk.ModifierType.SHIFT_MASK)
-        alt = bool(event.state & Gdk.ModifierType.MOD1_MASK)
-        if ctrl and not shift and not alt and event.keyval in (Gdk.KEY_a, Gdk.KEY_A):
-            self.select_and_copy()
-            return True
-        if alt and not ctrl and not shift and event.keyval in (Gdk.KEY_a, Gdk.KEY_A):
-            self.send(b"\x01")
-            return True
-        return False
-
-    def select_and_copy(self):
-        self.term.select_all()
-        copy_fmt = getattr(self.term, "copy_clipboard_format", None)
-        if copy_fmt is not None:
-            copy_fmt(Vte.Format.TEXT)
-        else:
-            self.term.copy_clipboard()
-        self.set_title("ctrl-a — selected and copied")
-        GLib.timeout_add(1200, self._reset_title)
-
-    def _reset_title(self):
-        self.set_title("ctrl-a")
-        return False
-
-    def send(self, data):
-        try:
-            self.term.feed_child(data)
-        except TypeError:
-            self.term.feed_child(data, len(data))
-
-
-def main():
-    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
-        print("ctrl-a — terminal where Ctrl+A selects all and copies it")
-        print("Alt+A goes to the start of the line")
-        return 0
-    win = Window()
-    win.connect("destroy", Gtk.main_quit)
-    win.show_all()
-    win.term.grab_focus()
-    Gtk.main()
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+user=$(id -un)
+apply_home "${HOME:-/home/$user}" "$user"
+if [ "$quiet" -eq 0 ]; then
+    echo "Ctrl+A is set on the normal terminal."
+    echo "Close every terminal window, then open Terminal again."
+    echo "Ctrl+A selects the whole scrollback and copies it."
+    echo "Home still jumps to the start of the line."
+fi

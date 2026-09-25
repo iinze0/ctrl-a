@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ctrl-a
+Comment=Keep Ctrl+A as select-all in the normal terminal
+Exec=ctrl-a --quiet
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+OnlyShowIn=XFCE;GNOME;KDE;LXQt;
